@@ -167,6 +167,4 @@ if (args.length !== 2) {
 
 const pdfPath = args[0];
 const outputDir = args[1];
-// pdfPath = '/Users/sines/Library/CloudStorage/GoogleDrive-richardlufalcon@gmail.com/My Drive/廣東話/lyt/分级阅读-迪士尼我会自己读 1-6级/迪士尼 第1级/迪士尼第1级 尼莫朋友多   (dragged).pdf';
-// outputDir = '/Users/sines/Library/CloudStorage/GoogleDrive-richardlufalcon@gmail.com/My Drive/廣東話/lyt/分级阅读-迪士尼我会自己读 1-6级/trans';
 processPDF(pdfPath, outputDir);
