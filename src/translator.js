@@ -16,7 +16,7 @@ const convertPDFToImages = async (pdfPath, outputDir) => {
     let counter = 1;
     for await (const image of images) {
       const jpegPath = `${outputDir}/page${counter.toString().padStart(3, '0')}.jpeg`;
-      await sharp(image).jpeg({ quality: 90, }).toFile(jpegPath);
+      await sharp(image).jpeg({ quality: 100, }).toFile(jpegPath);
       console.log(`Saved image: ${jpegPath}`);
       counter++;
     }
@@ -27,14 +27,14 @@ const convertPDFToImages = async (pdfPath, outputDir) => {
 };
 
 // Function to translate images using Playwright and Google Translate
-const translateImage = async (browser, imagePath, outputDir) => {
+const translateImage = async (inLang, outLang, browser, imagePath, outputDir) => {
   const translatedImagePath = path.join(outputDir, path.basename(imagePath, path.extname(imagePath)) + '_translated.jpeg');
 
   try {
     const page = await browser.newPage()
 
     // translate image
-    await page.goto('https://translate.google.com/?sl=zh-CN&tl=zh-TW&op=images');
+    await page.goto(`https://translate.google.com/?sl=${inLang}&tl=${outLang}&op=images`);
 
     const fileInput = page.getByRole('textbox', { name: 'Browse your files' });
     await fileInput.setInputFiles(imagePath);
@@ -63,7 +63,7 @@ const translateImage = async (browser, imagePath, outputDir) => {
     const pngData = Buffer.from(imageDataStr, 'base64');
     await sharp(pngData)
       .jpeg({ 
-        quality: 90,
+        quality: 100,
       })
       .toFile(translatedImagePath)
     await page.close();
@@ -114,7 +114,7 @@ const combineImagesToPDF = async (imagesDir, outputPdfPath) => {
 };
 
 // Main function to process the PDF
-const processPDF = async (pdfPath, outputDir) => {
+const processPDF = async (inLang, outLang, pdfPath, outputDir) => {
   const tempDir1 = tmp.dirSync({
     postfix: '_images',
   });
@@ -142,7 +142,7 @@ const processPDF = async (pdfPath, outputDir) => {
     const imageFiles = fs.readdirSync(tempDir1.name).filter(file => /\.(jpeg)$/i.test(file));
     for (const imageFile of imageFiles) {
       const imagePath = path.join(tempDir1.name, imageFile);
-      await translateImage(browser, imagePath, tempDir2.name);
+      await translateImage(inLang, outLang, browser, imagePath, tempDir2.name);
     }
     console.info('All images translated. 🌟');
     console.info('Combining images into PDF.. 📚');
@@ -160,11 +160,13 @@ const processPDF = async (pdfPath, outputDir) => {
 
 // Parse command-line arguments
 const args = process.argv.slice(2);
-if (args.length !== 2) {
-  console.error('Usage: node translator.js <path-to-pdf> <output-dir>');
+if (args.length !== 4) {
+  console.error('Usage: node translator.js <in-lang> <out-lang> <path-to-pdf> <output-dir>');
   process.exit(1);
 }
 
-const pdfPath = args[0];
-const outputDir = args[1];
-processPDF(pdfPath, outputDir);
+const inLang = args[0];
+const outLang = args[1];
+const pdfPath = args[2];
+const outputDir = args[3];
+processPDF(inLang, outLang, pdfPath, outputDir);
