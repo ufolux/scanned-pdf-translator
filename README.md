@@ -16,7 +16,7 @@ pnpm install
 ## Usage
 
 ```
-node src/translator.js <input.pdf> <output.dir>
+node src/translator.js <src-lang> <dst-lang> <input.pdf> <output.dir>
 ```
 
 ## Example
