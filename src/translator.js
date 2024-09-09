@@ -16,7 +16,7 @@ const convertPDFToImages = async (pdfPath, outputDir) => {
     let counter = 1;
     for await (const image of images) {
       const jpegPath = `${outputDir}/page${counter.toString().padStart(3, '0')}.jpeg`;
-      sharp(image).jpeg({ quality: 90, }).toFile(jpegPath);
+      await sharp(image).jpeg({ quality: 90, }).toFile(jpegPath);
       console.log(`Saved image: ${jpegPath}`);
       counter++;
     }
@@ -76,7 +76,7 @@ const translateImage = async (browser, imagePath, outputDir) => {
 // Function to combine images into a PDF
 const combineImagesToPDF = async (imagesDir, outputPdfPath) => {
   const pdfDoc = await PDFDocument.create();
-  const imageFiles = fs.readdirSync(imagesDir).filter(file => /\.(png|jpg|jpeg)$/i.test(file));
+  const imageFiles = fs.readdirSync(imagesDir).filter(file => /\.(jpeg)$/i.test(file));
 
   try {
     for (const imageFile of imageFiles) {
