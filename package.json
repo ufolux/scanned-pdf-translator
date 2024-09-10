@@ -3,15 +3,20 @@
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
-  "scripts": {},
+  "type": "module",
+  "scripts": {
+    "build": "esbuild src/translator.js --format=esm --target=node21 --bundle --platform=node --loader:.node=file --outfile=out/pdf-trans.js"
+  },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "devDependencies": {
     "@playwright/test": "^1.47.0",
-    "@types/node": "^22.5.4"
+    "@types/node": "^22.5.4",
+    "node-loader": "^2.0.0"
   },
   "dependencies": {
+    "esbuild": "^0.23.1",
     "fs-extra": "^11.2.0",
     "path": "^0.12.7",
     "pdf-lib": "^1.17.1",

@@ -1,0 +1,4 @@
+{
+    "main": "out/pdf-trans.js",
+    "output": "out/sea-prep.blob"
+  }
