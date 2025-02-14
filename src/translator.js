@@ -35,8 +35,7 @@ const translateImage = async (inLang, outLang, browser, imagePath, outputDir) =>
 
     // translate image
     await page.goto(`https://translate.google.com/?sl=${inLang}&tl=${outLang}&op=images`);
-
-    const fileInput = page.getByRole('textbox', { name: 'Browse your files' });
+    const fileInput = await page.locator('xpath=//html/body/c-wiz/div/div[2]/c-wiz/div[5]/c-wiz/div[2]/c-wiz/div/div/div/div[1]/div[2]/div[2]/div[1]/input')
     await fileInput.setInputFiles(imagePath);
 
     // get the translated image
