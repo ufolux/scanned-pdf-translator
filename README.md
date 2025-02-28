@@ -5,7 +5,7 @@ This is a tool to translate scanned PDFs using Google Image Translate. It uses P
 ## Quick start
 
 ```
-docker build -t scanned-pdf-translator .
+docker pull ufolux001/scanned-pdf-translator:latest
 docker run -d -p 3000:3000 scanned-pdf-translator
 ```
 
