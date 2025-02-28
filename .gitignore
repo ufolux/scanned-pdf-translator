@@ -1,0 +1,35 @@
+# ============
+# Node Modules
+# ============
+node_modules/
+src/server/node_modules/
+src/ui/node_modules/
+
+# ============
+# Build & Output
+# ============
+src/server/output/
+
+# ==================
+# Test & Report Files
+# ==================
+src/server/test-results/
+src/server/playwright-report/
+src/server/blob-report/
+src/server/playwright/.cache/
+
+# ============
+# Generated Files
+# ============
+src/server/stealth.png
+
+# ============
+# OS Specific
+# ============
+**/.DS_Store
+
+# ============
+# Temporary & Log Files
+# ============
+tmp/
+*.log
