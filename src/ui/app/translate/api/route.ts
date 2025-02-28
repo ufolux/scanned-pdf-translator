@@ -3,15 +3,15 @@ import { NextResponse } from "next/server";
 export async function POST(request: Request) {
   const formData = await request.formData();
   
-  const downloadLink = await fetch("http://localhost:3001/translate", {
+  const fileNameData = await fetch("http://localhost:3001/translate", {
     method: "POST",
     body: formData,
   });
 
-  const link = await downloadLink.json();
-  console.log(link);
+  const fileName = await fileNameData.json();
+  console.log(fileName);
   // Provide link to the processed PDF
-  return NextResponse.json(link);
+  return NextResponse.json(fileName);
 }
 
 export async function GET(request: Request) {

@@ -44,7 +44,7 @@ app.post("/translate", upload.single("inputPdf"), (req, res) => {
     progress: 0,
     status: "in progress",
     statusId: 1,
-    downloadLink: null
+    fileName: null
   };
 
   let inputPdf = "";
@@ -57,10 +57,10 @@ app.post("/translate", upload.single("inputPdf"), (req, res) => {
       progressMap[jobId].progress = progress;
     })
       .then((outputPdfPath) => {
-        const downloadLink = `${req.protocol}://${req.get(
-          "host"
-        )}/output/${outputPdfPath.split("/").at(-1)}`;
-        progressMap[jobId].downloadLink = downloadLink;
+        // const downloadLink = `${req.protocol}://${req.get(
+        //   "host"
+        // )}/output/${outputPdfPath.split("/").at(-1)}`;
+        progressMap[jobId].fileName = outputPdfPath.split("/").at(-1);
         progressMap[jobId].status = "completed";
         progressMap[jobId].statusId = 2;
         // Schedule removal after 30 minutes

@@ -37,8 +37,8 @@ export default function UploadPage() {
           setProgress(data.progress);
           setStatus(data.status);
           setStatusId(data.statusId);
-          if (data.downloadLink) {
-            setDownloadLink(`http:localhost:3001/dowanload/api?downloadLink=${data.downloadLink}`);
+          if (data.fileName) {
+            setDownloadLink(`${window.location.href}download/api?fileName=${data.fileName}`);
             clearInterval(intervalId);
             setButtonDisabled(false);
           }
@@ -70,7 +70,10 @@ export default function UploadPage() {
 
   const handleUpload = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!pdfFile) return;
+    if (!pdfFile) {
+      alert("Please upload a PDF file");
+      return;
+    }
 
     setButtonDisabled(true);
     const formData = new FormData();
@@ -258,7 +261,7 @@ export default function UploadPage() {
         {downloadLink && (
           <div className="mt-6 mb-14">
             <a
-              href={`${downloadLink}?response-content-type=application/octet-stream`}
+              href={`${downloadLink}&download=true`}
               download
               target="_blank"
               className="px-6 py-3 bg-green-600 hover:bg-green-700 text-white rounded-full shadow-lg transition-colors duration-300"
