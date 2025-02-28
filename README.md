@@ -28,10 +28,8 @@ node src/translator.js <src-lang> <dst-lang> <input.pdf> <output.dir>
 `<output.dir>` is the directory where the translated PDF will be saved.
 
 ## Example
-### Berfore
-<img width="587" alt="image" src="https://github.com/user-attachments/assets/223fda27-4977-4f62-b3d1-6fc33f4ed298">
 
-### After
-<img width="572" alt="image" src="https://github.com/user-attachments/assets/b8d877a7-b455-4ab8-9915-23722fa0d06c">
+<img width="1825" alt="image" src="https://github.com/user-attachments/assets/bef8f2da-e5d9-4ef0-8821-53b6b0920ead" />
+
 
 
