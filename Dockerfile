@@ -5,7 +5,7 @@ FROM node:20-slim
 WORKDIR /app
 
 # Copy the package.json and package-lock.json files
-COPY package.json ./
+COPY . .
 
 # Install additional dependencies
 RUN apt-get update && apt-get install -y \
@@ -35,17 +35,15 @@ RUN apt-get update && apt-get install -y \
 RUN npm install
 
 # Install dependencies for the server and UI
-WORKDIR /app/src/server
-RUN npm install
-RUN npx playwright install --with-deps
+# WORKDIR /app/src/server
+RUN cd src/server && npm install
+RUN cd src/server && npx playwright install --with-deps
 
-WORKDIR /app/src/ui
-RUN npm install
+# WORKDIR /app/src/ui
+RUN cd src/ui && npm install
 
-# Copy the rest of the application code
-COPY . .
 
-# Make port 80 available to the world outside this container
+# Make port 3000 available to the world outside this container
 EXPOSE 3000
 
 # Define environment variable
