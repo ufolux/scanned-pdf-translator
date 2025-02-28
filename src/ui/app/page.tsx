@@ -38,7 +38,7 @@ export default function UploadPage() {
           setStatus(data.status);
           setStatusId(data.statusId);
           if (data.downloadLink) {
-            setDownloadLink(data.downloadLink);
+            setDownloadLink(`http:localhost:3001/dowanload/api?downloadLink=${data.downloadLink}`);
             clearInterval(intervalId);
             setButtonDisabled(false);
           }

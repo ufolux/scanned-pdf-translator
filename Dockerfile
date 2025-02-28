@@ -37,7 +37,7 @@ RUN npm install
 # Install dependencies for the server and UI
 # WORKDIR /app/src/server
 RUN cd src/server && npm install
-RUN cd src/server && npx playwright install --with-deps
+RUN cd src/server && npx playwright install --with-deps firefox
 
 # WORKDIR /app/src/ui
 RUN cd src/ui && npm install
