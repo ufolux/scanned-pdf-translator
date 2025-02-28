@@ -52,4 +52,4 @@ EXPOSE 3000
 ENV NODE_ENV=development
 
 # Entry point to run the application
-ENTRYPOINT ["pnpm", "start:dev"]
+ENTRYPOINT ["npm", "run", "start:dev"]
