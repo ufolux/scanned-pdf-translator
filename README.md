@@ -1,5 +1,10 @@
 # Scanned PDFs Translator
 
+<p align="center">
+  <img src="https://github.com/user-attachments/assets/75693577-b1f2-464e-8fe3-576354b64c9c" width="200" height="200" alt="logo"/>
+</p>
+
+
 This is a tool to translate scanned PDFs using Google Image Translate. It uses Playwright to interact with Google Image Translate and combines the translated images into a PDF file.
 
 ## Quick start
@@ -11,21 +16,6 @@ docker run -d -p 3000:3000 scanned-pdf-translator
 
 Then open `http://localhost:3000` in your browser and enjoy.
 
-## Pre-requisites
-
-## Installation
-
-## Usage
-
-```
-node src/translator.js <src-lang> <dst-lang> <input.pdf> <output.dir>
-```
-
-`<src-lang>` and `<dst-lang>` should be the language code. For example, `en` for English, `ja` for Japanese, `zh-CN` for Simplified Chinese, etc. You can refer the code on google translate.
-
-`<input.pdf>` is the path to the PDF file to be translated.
-
-`<output.dir>` is the directory where the translated PDF will be saved.
 
 ## Example
 
