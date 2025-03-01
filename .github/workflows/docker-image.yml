@@ -26,5 +26,4 @@ jobs:
         push: true
         tags: |
           ${{ secrets.DOCKERHUB_USERNAME }}/scanned-pdf-translator:latest
-          ${{ secrets.DOCKERHUB_USERNAME }}/scanned-pdf-translator:${{ github.sha }}
-          ${{ secrets.DOCKERHUB_USERNAME }}/scanned-pdf-translator:1.0
+          ${{ secrets.DOCKERHUB_USERNAME }}/scanned-pdf-translator:1.0.0
