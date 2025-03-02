@@ -50,4 +50,4 @@ EXPOSE 3000
 ENV NODE_ENV=production
 
 # Entry point to run the application
-ENTRYPOINT ["npm", "run", "start:dev"]
+CMD ["npm", "run", "start:dev"]
