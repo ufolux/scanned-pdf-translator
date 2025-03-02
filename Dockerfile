@@ -48,7 +48,6 @@ EXPOSE 3000
 
 # Define environment variable
 ENV NODE_ENV=production
-ENV HOSTNAME="0.0.0.0"
 
 # Entry point to run the application
-CMD ["npm", "run", "start:dev"]
+CMD ["npm", "run", "start:prod"]
