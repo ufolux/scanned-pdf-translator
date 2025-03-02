@@ -1,0 +1,10 @@
+node_modules
+npm-debug.log
+
+src/ui/node_modules
+src/ui/npm-debug.log
+src/server/node_modules
+src/server/npm-debug.log
+
+src/server/output
+src/server/uploads
