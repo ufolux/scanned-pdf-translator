@@ -47,7 +47,7 @@ RUN cd src/ui && npm install
 EXPOSE 3000
 
 # Define environment variable
-ENV NODE_ENV=development
+ENV NODE_ENV=production
 
 # Entry point to run the application
 ENTRYPOINT ["npm", "run", "start:dev"]
