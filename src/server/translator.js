@@ -7,18 +7,28 @@ const stealth = require('puppeteer-extra-plugin-stealth')()
 const sharp = require('sharp');
 
 // Function to convert PDF to images
-const convertPDFToImages = async (pdfPath, outputDir) => {
+const convertPDFToImages = async (pdfPath, outputDir, progressCallback) => {
   console.info('Converting PDF to images.. and save to', outputDir);
   fs.ensureDirSync(outputDir);
   const { pdf } = await import("pdf-to-img");
   try {
     const images = await pdf(pdfPath, { scale: 1 });
     let counter = 1;
+    let imageCount = 0;
     for await (const image of images) {
+      imageCount++;
+    }
+
+    let currentImage = 0;
+    for await (const image of images) {
+      currentImage++;
       const jpegPath = `${outputDir}/page${counter.toString().padStart(3, '0')}.jpeg`;
       await sharp(image).jpeg({ quality: 100, }).toFile(jpegPath);
       console.log(`Saved image: ${jpegPath}`);
       counter++;
+      // Report percentage
+      const percentage = (currentImage / imageCount);
+      progressCallback(percentage);
     }
     console.info('Pdf converted to images. 🌟');
   } catch (error) {
@@ -35,7 +45,7 @@ const translateImage = async (inLang, outLang, browser, imagePath, outputDir) =>
 
     // translate image
     await page.goto(`https://translate.google.com/?sl=${inLang}&tl=${outLang}&op=images`);
-    const fileInput = await page.locator('xpath=//html/body/c-wiz/div/div[2]/c-wiz/div[5]/c-wiz/div[2]/c-wiz/div/div/div/div[1]/div[2]/div[2]/div[1]/input')
+    const fileInput = await page.locator('css=#yDmH0d > c-wiz > div > div.ToWKne > c-wiz > div.caTGn > c-wiz > div.iggndc > c-wiz > div > div > div > div.rlWbvd > div.gLXQIf > div.T12pLd > div:nth-child(1) > input')
     await fileInput.setInputFiles(imagePath);
 
     // get the translated image
@@ -135,8 +145,7 @@ const processPDF = async (inLang, outLang, pdfPath, outputDir, progressCallback 
 
   try {
     // Convert PDF to images and report progress (~10%)
-    await convertPDFToImages(pdfPath, tempDir1.name);
-    progressCallback(10);
+    await convertPDFToImages(pdfPath, tempDir1.name, (progress) => progressCallback(Math.round(10 * progress)));
 
     const imageFiles = fs.readdirSync(tempDir1.name).filter(file => /\.(jpeg)$/i.test(file));
     const total = imageFiles.length;
