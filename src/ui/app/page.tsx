@@ -49,7 +49,7 @@ export default function UploadPage() {
         } else {
           clearInterval(intervalId);
         }
-      }, 5000);
+      }, 2000);
     }
     return () => {
       if (intervalId) clearInterval(intervalId);
