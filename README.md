@@ -23,3 +23,4 @@ Then open `http://localhost:3000` in your browser and enjoy.
 
 
 
+<img width="1828" alt="image" src="https://github.com/user-attachments/assets/4119ad74-a933-465d-9811-c2f9f6445052" />
