@@ -6,12 +6,6 @@
   "scripts": {
     "start": "node api.js"
   },
-  "pnpm": {
-    "supportedArchitectures": {
-      "os": ["win32", "darwin", "linux"],
-      "cpu": ["x64", "arm64"]
-    }
-  },
   "keywords": [],
   "author": "",
   "license": "ISC",
@@ -23,6 +17,7 @@
     "express": "^4.21.2",
     "fs-extra": "^11.3.0",
     "multer": "^1.4.5-lts.1",
+    "openai": "^4.86.2",
     "path": "^0.12.7",
     "pdf-lib": "^1.17.1",
     "pdf-to-img": "4.1.0",

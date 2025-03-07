@@ -1,114 +1,183 @@
 const fs = require('fs-extra');
 const path = require('path');
-const { PDFDocument } = require('pdf-lib');
 const tmp = require('tmp');
-const { firefox } = require('playwright-extra')
-const stealth = require('puppeteer-extra-plugin-stealth')()
 const sharp = require('sharp');
+const OpenAI = require('openai');
+const { convertPDFToImages, combineImagesToPDF } = require('./pdf-utils');
 
-// Function to convert PDF to images
-const convertPDFToImages = async (pdfPath, outputDir) => {
-  console.info('Converting PDF to images.. and save to', outputDir);
-  fs.ensureDirSync(outputDir);
-  const { pdf } = await import("pdf-to-img");
+// Initialize OpenAI client for Qwen-VL model
+const openai = new OpenAI({
+  apiKey: process.env.DASHSCOPE_API_KEY ?? "sk-c96534d06e4a4f32ad03103603379a4a",
+  baseURL: "https://dashscope.aliyuncs.com/compatible-mode/v1"
+});
+
+// Function to encode image to base64
+const encodeImage = (imagePath) => {
+  const imageBuffer = fs.readFileSync(imagePath);
+  return imageBuffer.toString('base64');
+};
+
+// Function to analyze image using Qwen-VL model
+const analyzeImageWithQwenVL = async (imagePath, inLang, outLang) => {
+  const base64Image = encodeImage(imagePath);
+  
   try {
-    const images = await pdf(pdfPath, { scale: 1 });
-    let counter = 1;
-    for await (const image of images) {
-      const jpegPath = `${outputDir}/page${counter.toString().padStart(3, '0')}.jpeg`;
-      await sharp(image).jpeg({ quality: 100, }).toFile(jpegPath);
-      console.log(`Saved image: ${jpegPath}`);
-      counter++;
-    }
-    console.info('Pdf converted to images. 🌟');
+    const completion = await openai.chat.completions.create({
+      model: "qwen2.5-vl-72b-instruct",
+      messages: [
+        {
+          "role": "system", 
+          "content": [{"type": "text", "text": 
+            `You are a specialized OCR and translation assistant. Analyze the image to:
+            1. Detect all text regions in the image
+            2. Extract the text from each region (in ${inLang})
+            3. Translate each text region to ${outLang}
+            4. Determine the font family, font size, and background color for each region
+            5. Return the results with coordinates for each text region only in JSON format`
+          }]
+        },
+        {
+          "role": "user",
+          "content": [
+            {
+              "type": "image_url",
+              "image_url": {"url": `data:image/jpeg;base64,${base64Image}`}
+            },
+            {
+              "type": "text", 
+              "text": `Please analyze this image to:
+              1. Identify all text regions and their coordinates (x, y, width, height)
+              2. Extract the text in ${inLang}
+              3. Translate the text to ${outLang}
+              4. Determine the approximate font family (serif, sans-serif, monospace, etc.), font size in pixels, and background color (in hex format) for each region
+              
+              Return the results ONLY in JSON format like:
+              {
+                "regions": [
+                  {
+                    "coordinates": {x: 10, y: 10, width: 100, height: 100},
+                    "originalText": "text in ${inLang}",
+                    "translatedText": "text in ${outLang}",
+                    "fontFamily": "sans-serif",
+                    "fontSize": 16,
+                    "backgroundColor": "#FFFFFF"
+                  }
+                ]
+              }`
+            }
+          ]
+        }
+      ],
+      response_format: { type: "json_object" }
+    });
+
+    // Parse the JSON response
+    return JSON.parse(completion.choices[0].message.content);
   } catch (error) {
-    console.error('Error converting PDF to images:', error);
+    console.error("Error analyzing image with Qwen-VL:", error);
+    return { regions: [] };
   }
 };
 
-// Function to translate images using Playwright and Google Translate
-const translateImage = async (inLang, outLang, browser, imagePath, outputDir) => {
+// Function to translate images using AI model
+const translateImage = async (inLang, outLang, imagePath, outputDir) => {
   const translatedImagePath = path.join(outputDir, path.basename(imagePath, path.extname(imagePath)) + '_translated.jpeg');
 
   try {
-    const page = await browser.newPage()
+    console.info(`Analyzing and translating ${path.basename(imagePath)}...`);
 
-    // translate image
-    await page.goto(`https://translate.google.com/?sl=${inLang}&tl=${outLang}&op=images`);
-    const fileInput = await page.locator('xpath=//html/body/c-wiz/div/div[2]/c-wiz/div[5]/c-wiz/div[2]/c-wiz/div/div/div/div[1]/div[2]/div[2]/div[1]/input')
-    await fileInput.setInputFiles(imagePath);
+    // Get text regions and translations from Qwen-VL model
+    const analysisResult = await analyzeImageWithQwenVL(imagePath, inLang, outLang);
 
-    // get the translated image
-    const translatedImage = await page.waitForSelector('div.CMhTbb:nth-child(2) > img:nth-child(1)');
-
-    // Get the blob URL
-    const blobUrl = await translatedImage.getAttribute('src');
-    // Retrieve the blob data and convert it to a base64-encoded string
-    const base64Data = await page.evaluate((blobUrl) => {
-      return new Promise((resolve, reject) => {
-        fetch(blobUrl)
-          .then((response) => response.blob())
-          .then((blob) => {
-            const reader = new FileReader();
-            reader.onload = () => resolve(reader.result);
-            reader.readAsDataURL(blob);
-          })
-          .catch((error) => reject(error));
-      });
-    }, blobUrl);
-
-    // Save the image to a file
-    const imageDataStr = base64Data.split(',')[1];
-    const pngData = Buffer.from(imageDataStr, 'base64');
-    await sharp(pngData)
-      .jpeg({ 
-        quality: 100,
-      })
-      .toFile(translatedImagePath)
-    await page.close();
-    console.info(`${path.basename(imagePath, path.extname(imagePath))} translated and saved to ${translatedImagePath} 🌟`);
-  } catch (error) {
-    console.error('Error translating image:', error);
-  }
-};
-
-// Function to combine images into a PDF
-const combineImagesToPDF = async (imagesDir, outputPdfPath) => {
-  const pdfDoc = await PDFDocument.create();
-  const imageFiles = fs.readdirSync(imagesDir).filter(file => /\.(jpeg)$/i.test(file));
-
-  try {
-    for (const imageFile of imageFiles) {
-      const imagePath = path.join(imagesDir, imageFile);
-      const imageBytes = fs.readFileSync(imagePath);
-      let image;
-      try {
-        image = await pdfDoc.embedJpg(imageBytes);
-      } catch (error) {
-        console.error('Error embedding image:', error);
-        exit(1);
+    // Load the original image
+    const image = sharp(imagePath);
+    
+    // Create a composite array for overlaying translated text
+    let compositeArray = [];
+    
+    // Create a text overlay for each detected region
+    for (const region of analysisResult.regions || []) {
+      const { coordinates, translatedText, fontFamily, fontSize, backgroundColor } = region;
+      
+      // Use detected values or fallbacks
+      const fontFamilyToUse = fontFamily || "Arial, sans-serif";
+      const fontSizeToUse = fontSize || Math.max(14, Math.floor(coordinates.height * 0.7));
+      const bgColor = backgroundColor || "#FFFFFF";
+      const bgOpacity = 0.7;
+      
+      // Calculate text positioning and wrapping
+      const padding = Math.max(5, Math.floor(fontSizeToUse / 3));
+      const maxWidth = coordinates.width - (padding * 2);
+      const lineHeight = Math.floor(fontSizeToUse * 1.2);
+      
+      // Wrap text to fit in the region
+      const words = translatedText.split(' ');
+      let lines = [];
+      let currentLine = '';
+      
+      for (const word of words) {
+        const testLine = currentLine ? `${currentLine} ${word}` : word;
+        // This is a simple estimate - in production you might want to use
+        // a more sophisticated text measurement approach
+        const testWidth = testLine.length * (fontSizeToUse * 0.6);
+        
+        if (testWidth > maxWidth && currentLine) {
+          lines.push(currentLine);
+          currentLine = word;
+        } else {
+          currentLine = testLine;
+        }
+      }
+      if (currentLine) {
+        lines.push(currentLine);
       }
       
-      // if (imageFile.endsWith('.png')) {
-      //   image = await pdfDoc.embedPng(imageBytes);
-      // } else {
-      //   image = await pdfDoc.embedJpg(imageBytes);
-      // }
-  
-      const page = pdfDoc.addPage([image.width, image.height]);
-      page.drawImage(image, {
-        x: 0,
-        y: 0,
-        width: image.width,
-        height: image.height,
+      // Create SVG with wrapped text
+      const svgText = `
+        <svg width="${coordinates.width}" height="${coordinates.height}">
+          <rect width="100%" height="100%" fill="${bgColor}" fill-opacity="${bgOpacity}"/>
+          ${lines.map((line, i) => `
+            <text 
+              x="${padding}" 
+              y="${padding + fontSizeToUse + (i * lineHeight)}" 
+              font-family="${fontFamilyToUse}" 
+              font-size="${fontSizeToUse}px" 
+              fill="black"
+            >${line}</text>
+          `).join('')}
+        </svg>
+      `;
+      
+      const svgBuffer = Buffer.from(svgText);
+      
+      // Add to composite array
+      compositeArray.push({
+        input: svgBuffer,
+        top: coordinates.y,
+        left: coordinates.x,
       });
     }
-  
-    const pdfBytes = await pdfDoc.save();
-    fs.writeFileSync(outputPdfPath, pdfBytes);
-    console.log(`PDF successfully created at ${outputPdfPath}`);
+    
+    // Apply text overlays to the image
+    if (compositeArray.length > 0) {
+      await image
+        .composite(compositeArray)
+        .jpeg({ quality: 100 })
+        .toFile(translatedImagePath);
+    } else {
+      // If no text regions were detected, just copy the original image
+      await image
+        .jpeg({ quality: 100 })
+        .toFile(translatedImagePath);
+    }
+    
+    console.info(`${path.basename(imagePath, path.extname(imagePath))} translated and saved to ${translatedImagePath} 🌟`);
+    return translatedImagePath;
   } catch (error) {
-    console.error('Error creating PDF:', error);
+    console.error('Error translating image:', error);
+    // Fallback: copy original image if translation fails
+    await sharp(imagePath).toFile(translatedImagePath);
+    return translatedImagePath;
   }
 };
 
@@ -122,17 +191,6 @@ const processPDF = async (inLang, outLang, pdfPath, outputDir, progressCallback 
   }
   const outputPdfPath = path.join(outputDir, path.basename(pdfPath, path.extname(pdfPath)) + '_translated.pdf');
 
-  // Launch browser
-  firefox.use(stealth);
-  const browser = await firefox.launch({ headless: true, ignoreHTTPSErrors: true });
-  const page = await browser.newPage();
-
-  // Stealth test (optional)
-  console.log('Testing the stealth plugin..');
-  await page.goto('https://bot.sannysoft.com', { waitUntil: 'networkidle' });
-  await page.screenshot({ path: 'stealth.png', fullPage: true });
-  console.log('Stealth test done.');
-
   try {
     // Convert PDF to images and report progress (~10%)
     await convertPDFToImages(pdfPath, tempDir1.name);
@@ -144,7 +202,7 @@ const processPDF = async (inLang, outLang, pdfPath, outputDir, progressCallback 
     // Translate each image: progress goes from 10 to 90%
     for (const [index, imageFile] of imageFiles.entries()) {
       const imagePath = path.join(tempDir1.name, imageFile);
-      await translateImage(inLang, outLang, browser, imagePath, tempDir2.name);
+      await translateImage(inLang, outLang, imagePath, tempDir2.name);
       const progress = 10 + Math.round((80 * (index + 1)) / total); 
       progressCallback(progress);
     }
@@ -159,7 +217,6 @@ const processPDF = async (inLang, outLang, pdfPath, outputDir, progressCallback 
     fs.removeSync(tempDir1.name);
     fs.removeSync(tempDir2.name);
     console.log('Temporary folders cleaned up.');
-    await browser.close();
   }
 
   return outputPdfPath;
