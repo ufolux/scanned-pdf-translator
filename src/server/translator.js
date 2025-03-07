@@ -7,7 +7,7 @@ const { convertPDFToImages, combineImagesToPDF } = require('./pdf-utils');
 
 // Initialize OpenAI client for Qwen-VL model
 const openai = new OpenAI({
-  apiKey: process.env.DASHSCOPE_API_KEY ?? "sk-c96534d06e4a4f32ad03103603379a4a",
+  apiKey: process.env.DASHSCOPE_API_KEY,
   baseURL: "https://dashscope.aliyuncs.com/compatible-mode/v1"
 });
 
