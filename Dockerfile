@@ -4,11 +4,9 @@ FROM node:20-slim
 # Set the working directory in the container
 WORKDIR /app
 
-# Copy the package.json and package-lock.json files
-COPY . .
-
 # Install additional dependencies
 RUN apt-get update && apt-get install -y \
+    graphicsmagick \
     pkg-config \
     libcairo2-dev \
     libpango1.0-dev \
@@ -31,23 +29,23 @@ RUN apt-get update && apt-get install -y \
     libasound2 \
     libdbus-1-3
 
+    # Copy the package.json and package-lock.json files
+COPY package*.json ./
+
 # Install any needed packages specified in package.json
 RUN npm install
 
-# Install dependencies for the server and UI
-# WORKDIR /app/src/server
-RUN cd src/server && npm install
-RUN cd src/server && npx playwright install --with-deps firefox
+# Install playwright
+RUN npx playwright install --with-deps firefox
 
-# WORKDIR /app/src/ui
-RUN cd src/ui && npm install
+# Copy the rest of the application code
+COPY . .
 
+# Build the application
+RUN npm run build
 
 # Make port 3000 available to the world outside this container
 EXPOSE 3000
 
-# Define environment variable
-ENV NODE_ENV=production
-
 # Entry point to run the application
-CMD ["npm", "run", "start:prod"]
+CMD ["npm", "run", "start"]
