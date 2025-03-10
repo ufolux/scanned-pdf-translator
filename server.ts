@@ -1,7 +1,7 @@
 // server.js
-const { createServer } = require('http');
-const { parse } = require('url');
-const next = require('next');
+import { createServer } from 'http';
+import { parse } from 'url';
+import next from 'next';
 
 const dev = process.env.NODE_ENV !== 'production';
 const hostname = dev ? 'localhost' : '0.0.0.0';
@@ -12,6 +12,9 @@ const handle = app.getRequestHandler();
 
 app.prepare().then(() => {
   createServer(async (req, res) => {
+    if (!req.url) {
+      return;
+    }
     try {
       // Parse request URL to identify route and query parameters
       const parsedUrl = parse(req.url, true);
@@ -22,6 +25,7 @@ app.prepare().then(() => {
         app.render(req, res, '/custom-page', query);
       } else {
         // Handle other routes using Next.js default handling
+        console.log('Handling', req, res, parsedUrl);
         await handle(req, res, parsedUrl);
       }
     } catch (err) {
@@ -29,8 +33,11 @@ app.prepare().then(() => {
       res.statusCode = 500;
       res.end('internal server error');
     }
-  }).listen(port, (err) => {
-    if (err) throw err;
+  })
+  .on('error', (err: Error) => {
+    throw err;
+  })
+  .listen(port, () => {
     console.log(`> Ready on http://${hostname}:${port}`);
   });
 });

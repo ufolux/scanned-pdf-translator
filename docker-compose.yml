@@ -1,0 +1,47 @@
+# docker-compose.yml
+version: '3'
+services:
+  app:
+    build: 
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "3001:3000"
+    environment:
+      - NODE_ENV=development
+      - REDIS_URL=redis://redis:6379
+    volumes:
+      - .:/app
+      - /app/node_modules
+      - app_temp:/app/temp
+    depends_on:
+      - redis
+    command: sleep infinity  # Keep container running for devcontainer
+
+  redis:
+    image: redis:alpine
+    command: ["redis-server", "--appendonly", "yes", "--protected-mode", "no", "--bind", "0.0.0.0"]
+    volumes:
+      - redis_data:/data
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  redis_data:
+    driver: local
+    driver_opts:
+      type: none
+      device: ${PWD}/data/redis
+      o: bind
+  app_temp:
+    driver: local
+    driver_opts:
+      type: none
+      device: ${PWD}/data/temp
+      o: bind
+      

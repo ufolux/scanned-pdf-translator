@@ -6,6 +6,10 @@ const nextConfig: NextConfig = {
       bodySizeLimit: '50mb',
     },
   },
+  serverExternalPackages: [
+    'puppeteer-extra-plugin-stealth', 
+    'playwright-extra',
+  ],
 };
 
 export default nextConfig;

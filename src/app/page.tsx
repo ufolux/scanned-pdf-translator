@@ -31,14 +31,15 @@ export default function UploadPage() {
     let intervalId: NodeJS.Timeout;
     if (jobId) {
       intervalId = setInterval(async () => {
+        console.info("Polling for job status... jobId:", jobId);
         const res = await fetch(`/translate/api?jobId=${jobId}`);
         if (res.ok) {
           const data = await res.json();
           setProgress(data.progress);
           setStatus(data.status);
           setStatusId(data.statusId);
-          if (data.fileName) {
-            setDownloadLink(`${window.location.href}download/api?fileName=${data.fileName}`);
+          if (data.status === "completed") {
+            setDownloadLink(`/download/api?jobId=${jobId}`);
             clearInterval(intervalId);
             setButtonDisabled(false);
           }
