@@ -9,7 +9,15 @@ This is a tool to translate scanned PDFs using Google Image Translate. It uses P
 
 ## Quick start
 
-### Local server
+### Command line interface
+
+```
+npm run install:all
+cd src/server
+node cli.js {fromLang} {toLang} {filePath} {outputDir}
+```
+
+### UI Local server
 
 ```
 npm run install:all
@@ -18,7 +26,7 @@ npm run start:dev
 
 Then you can open `http://localhost:3010` in your browser and enjoy.
 
-### Docker
+### UI Docker
 
 ```
 docker pull ufolux001/scanned-pdf-translator:latest
