@@ -14,8 +14,23 @@ This is a tool to translate scanned PDFs using Google Image Translate. It uses P
 ```
 npm run install:all
 cd src/server
-node cli.js {fromLang} {toLang} {filePath} {outputDir}
+node cli.js [fromLang] [toLang] [filePath] [outputDir]
 ```
+
+For example
+
+```
+node cli.js zh-CN en ~/Documents/example.pdf ~/Documents/output
+```
+
+You can find the fromLang and toLang codes in the URL parameters of Google Translate.
+After selecting the languages, the URL will look like this:
+
+```
+https://translate.google.com/?sl=zh-CN&tl=en&op=translate
+```
+
+Here, sl represents the source language (fromLang), and tl represents the target language (toLang).
 
 ### UI Local server
 
